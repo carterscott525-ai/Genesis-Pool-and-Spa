@@ -32,7 +32,7 @@
   <header id="header">
     <div class="promo-bar">
       <div class="container">
-        <a href="#request-form" class="promo-link">&#129514; <strong>FREE Chemical Balancing + Cleaning</strong> — Book Now</a>
+        <a href="#request-form" class="promo-link">&#129514; <strong>FREE Chemical Balancing + Cleaning</strong> — Book Now</a><span class="promo-sep"> &nbsp;|&nbsp; </span><span class="promo-extra">Free tile cleaning upon <a href="#request-form">signup</a></span>
       </div>
     </div>
     <nav class="navbar">
@@ -279,6 +279,17 @@
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('prefDate').setAttribute('min', today);
     document.getElementById('altDate').setAttribute('min', today);
+
+    const schedForm = document.getElementById('schedForm');
+    schedForm.addEventListener('submit', function () {
+      if (window.APPS_SCRIPT_URL && window.APPS_SCRIPT_URL.indexOf('REPLACE_WITH') === -1) {
+        const fd = new FormData(schedForm);
+        fd.append('Form Source', 'Schedule Form');
+        // sendBeacon (not fetch) so this isn't cancelled by the page
+        // navigating away to FormSubmit.co right after this fires.
+        navigator.sendBeacon(window.APPS_SCRIPT_URL, fd);
+      }
+    });
   </script>
 </body>
 </html>

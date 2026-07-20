@@ -66,7 +66,7 @@
   <header id="header">
     <div class="promo-bar">
       <div class="container">
-        <a href="#contact" class="promo-link">&#129514; <strong>FREE Chemical Balancing + Cleaning</strong> — Book Now</a>
+        <a href="schedule.html" class="promo-link">&#129514; <strong>FREE Chemical Balancing + Cleaning</strong> — Book Now</a><span class="promo-sep"> &nbsp;|&nbsp; </span><span class="promo-extra">Free tile cleaning upon <a href="schedule.html#request-form">signup</a></span>
       </div>
     </div>
     <nav class="navbar">
@@ -160,11 +160,12 @@
   </section>
 
   <!-- WHAT'S INCLUDED BANNER -->
-  <section class="included-banner">
+  <section class="included-banner" id="included">
     <div class="container included-inner">
       <span class="included-tag">Included With Every Signup</span>
       <h2>What You Get When You Sign Up</h2>
       <p>Regular service includes weekly cleaning and chemical balancing, plus one free tile cleaning and ongoing brush &amp; net replacement — all part of the bundle. Need a new net or brush? We'll provide them. Equipment repair is available too, with pricing based on the job.</p>
+      <a href="#contact" class="btn included-btn" data-preselect-service="bundle">Sign Up for the Bundle</a>
     </div>
   </section>
 
@@ -229,6 +230,7 @@
             <li>Filter cleaning &amp; repair</li>
             <li>Heater maintenance</li>
             <li>Leak detection &amp; repair</li>
+            <li>Ongoing brush &amp; net replacement</li>
           </ul>
         </div>
 
@@ -247,7 +249,7 @@
             <li>Waterline scale &amp; calcium removal</li>
             <li>Algae &amp; grime treatment</li>
             <li>Non-abrasive cleaning methods</li>
-            <li>One free tile cleaning for new customers</li>
+            <li><a href="#included">Free Tile Cleaning with Signup</a></li>
           </ul>
         </div>
 
@@ -415,40 +417,11 @@
         <h2>Customer Reviews</h2>
         <p>Don't just take our word for it — hear from the families we serve.</p>
       </div>
-      <div class="testimonials-grid">
-        <div class="testimonial-card">
-          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <p>"Genesis Pool and Spa has been maintaining our pool for over a year now and the water has never looked better. Reliable, professional, and always on time!"</p>
-          <div class="testimonial-author">
-            <div class="author-avatar">JM</div>
-            <div>
-              <strong>J. Martinez</strong>
-              <span>Sacramento, CA</span>
-            </div>
-          </div>
-        </div>
-        <div class="testimonial-card">
-          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <p>"Our hot tub was a mess and they had it sparkling clean in no time. Incredibly knowledgeable about water chemistry. We won't use anyone else!"</p>
-          <div class="testimonial-author">
-            <div class="author-avatar">SK</div>
-            <div>
-              <strong>S. Kim</strong>
-              <span>Elk Grove, CA</span>
-            </div>
-          </div>
-        </div>
-        <div class="testimonial-card">
-          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <p>"Great communication, fair prices, and excellent service. They fixed our pool pump quickly and now everything runs perfectly. Highly recommended!"</p>
-          <div class="testimonial-author">
-            <div class="author-avatar">TR</div>
-            <div>
-              <strong>T. Robinson</strong>
-              <span>Rancho Cordova, CA</span>
-            </div>
-          </div>
-        </div>
+      <div class="testimonials-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p>Customer reviews coming soon — check back after our first completed jobs.</p>
       </div>
     </div>
   </section>
@@ -512,8 +485,8 @@
             </div>
           </div>
           <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="john@example.com" required>
+            <label for="email">Email Address (optional)</label>
+            <input type="email" id="email" name="email" placeholder="john@example.com">
           </div>
           <div class="form-group">
             <label for="phone">Phone Number</label>
@@ -523,6 +496,7 @@
             <label for="service">Service Interested In</label>
             <select id="service" name="service">
               <option value="">Select a service...</option>
+              <option value="bundle">Bundle (Signup) — Cleaning + Balancing + Free Tile Cleaning</option>
               <option value="weekly-cleaning">Weekly Pool &amp; Spa Cleaning</option>
               <option value="chemical-balancing">Chemical Balancing &amp; Water Testing</option>
               <option value="equipment-repair">Equipment Repair &amp; Maintenance</option>
@@ -531,8 +505,8 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="message">Message</label>
-            <textarea id="message" name="message" rows="4" placeholder="Tell us about your pool or spa and what you need..." required></textarea>
+            <label for="message">Message (optional)</label>
+            <textarea id="message" name="message" rows="4" placeholder="Tell us about your pool or spa and what you need..."></textarea>
           </div>
           <button type="submit" class="btn btn-primary btn-full">Send Message</button>
           <div id="formSuccess" class="form-success" style="display:none;">

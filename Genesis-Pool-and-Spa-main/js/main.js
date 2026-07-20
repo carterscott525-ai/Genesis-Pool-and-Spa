@@ -2,6 +2,10 @@
    GENESIS Pool and Spa — Main JS
    ================================================ */
 
+// Google Apps Script Web App URL that logs form submissions to the
+// Booking Requests sheet. Update this one line once the script is deployed.
+window.APPS_SCRIPT_URL = 'REPLACE_WITH_DEPLOYED_APPS_SCRIPT_URL';
+
 (function () {
   'use strict';
 
@@ -70,6 +74,26 @@
     animObserver.observe(el);
   });
 
+  // ── Pre-select a service on the contact form ──
+  function applyServicePreselect(value) {
+    const serviceSelect = document.getElementById('service');
+    if (serviceSelect && value) {
+      serviceSelect.value = value;
+    }
+  }
+
+  // Same-page click (button/link with data-preselect-service, e.g. the
+  // "Sign Up for the Bundle" banner button or the Tile Cleaning card link).
+  document.querySelectorAll('[data-preselect-service]').forEach(function (link) {
+    link.addEventListener('click', function () {
+      applyServicePreselect(link.getAttribute('data-preselect-service'));
+    });
+  });
+
+  // Cross-page link (e.g. schedule.html's "signup" link ->
+  // index.html?service=bundle#contact) — read it from the URL on load.
+  applyServicePreselect(new URLSearchParams(window.location.search).get('service'));
+
   // ── Contact form (show success message) ──────
   const form = document.getElementById('contactForm');
   const successMsg = document.getElementById('formSuccess');
@@ -77,6 +101,23 @@
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+
+      if (window.APPS_SCRIPT_URL && window.APPS_SCRIPT_URL.indexOf('REPLACE_WITH') === -1) {
+        const serviceSelect = document.getElementById('service');
+        const serviceLabel = serviceSelect.selectedIndex >= 0
+          ? serviceSelect.options[serviceSelect.selectedIndex].text
+          : '';
+        const payload = new URLSearchParams();
+        payload.append('Form Source', 'Contact Form');
+        payload.append('First Name', document.getElementById('firstName').value);
+        payload.append('Last Name', document.getElementById('lastName').value);
+        payload.append('Email', document.getElementById('email').value);
+        payload.append('Phone', document.getElementById('phone').value);
+        payload.append('Service Interested In', serviceLabel);
+        payload.append('Notes', document.getElementById('message').value);
+        fetch(window.APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: payload });
+      }
+
       successMsg.style.display = 'block';
       form.reset();
       setTimeout(function () {

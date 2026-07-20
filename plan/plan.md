@@ -110,19 +110,14 @@ none of those are brand copy, so they weren't touched.
 removed from both promo bars. The header's own call button already surfaces the phone
 number, so the promo bar now only shows the offer link.
 
-**Also done — promo bar link now scrolls to the on-page form instead of navigating to a
-new page**: previously the promo bar linked to `schedule.html` from every page (a full
-page navigation, even redundantly reloading `schedule.html` from itself). Now:
-- `index.html` promo bar → `href="#contact"` (the existing "We're Here to Help" contact
-  form section on the same page)
-- `schedule.html` promo bar → `href="#request-form"` (added `id="request-form"` to its
-  own `.sched-form-section`)
-- Added `section[id] { scroll-margin-top: 100px; }` in `css/styles.css` so anchored
-  sections don't land underneath the fixed header.
-- Scope note: only the promo bar link itself was changed. Other buttons that still point
-  to `schedule.html` (hero's "Schedule a Free Cleaning & Chemical Balance", the thank-you
-  page's "Book Another Appointment") were left alone since only "the top banner redirect
-  link" was called out — flag if those should also become in-page anchors.
+**Promo bar link — tried in-page anchor, reverted back to `schedule.html`.** Briefly
+changed to scroll to an on-page form instead of navigating away (added `id="request-form"`
+to `schedule.html`'s form section and `section[id] { scroll-margin-top: 100px; }` in
+`css/styles.css` for the anchor landing spot — that CSS rule is harmless and stays even
+though it's not load-bearing for the promo bar anymore). **Final decision: both
+`index.html` and `schedule.html` promo bars link to `schedule.html`** — a dedicated page
+was fine; what actually needed work was rewriting that page's content, which was already
+done as part of the "Free Inspection" rename above.
 
 **Also done — "Get a Free Quote" retired**: the hero's outline button now reads
 **"Schedule a Free Cleaning & Chemical Balance"** and links to `schedule.html` (this
@@ -188,6 +183,51 @@ framing):
   Got You Covered"**: "Need a new net or brush? We'll provide them — plus a free tile
   cleaning if you're a new customer," with a gift-box icon instead of the wrench icon.
 
+**Now links to the contact form (decision reversed from "no CTA")**: the banner gained
+`id="included"` and a **"Sign Up for the Bundle"** button linking to `#contact`. The
+Tile Cleaning service card's "One free tile cleaning for new customers" bullet became a
+link, **"Free Tile Cleaning with Signup,"** pointing at `#included` — so the flow is
+Tile Cleaning card → What's Included banner → Sign Up button → contact form. Both the
+banner button and (if reused elsewhere) any link with a `data-preselect-service`
+attribute auto-select that value in the contact form's service dropdown via a small
+`main.js` handler, so clicking "Sign Up for the Bundle" lands on the contact form with
+**"Bundle (Signup) — Cleaning + Balancing + Free Tile Cleaning"** already selected. A new
+`bundle` option was added to that dropdown for this purpose.
+
+**"Free tile cleaning upon signup" added to both promo bars.** `index.html` and
+`schedule.html` both now show "Free tile cleaning upon **signup**" next to the main promo
+link (hidden on mobile at the same breakpoints the old phone number used to be, via a new
+`.promo-extra` class, to keep the bar to one line). The word "signup" is the link, and it
+needs to pre-select the bundle option same as the banner button above — but
+`schedule.html` has no `#contact` form of its own, so the same-page `data-preselect-service`
+click handler doesn't work there. Solved with a **URL query parameter**: `schedule.html`'s
+"signup" link points to `index.html?service=bundle#contact`; `main.js` now also reads a
+`service` query param on page load (`applyServicePreselect(new
+URLSearchParams(window.location.search).get('service'))`) and applies it the same way the
+click handler does, so both the same-page and cross-page paths share one function.
+`index.html`'s own "signup" link stays same-page (`href="#contact"
+data-preselect-service="bundle"`), since it doesn't need the URL-param path.
+
+**Contact form fields loosened**: Email Address and Message are no longer `required` on
+the `#contactForm` (index.html) — labels updated to say "(optional)" so it's visually
+clear. Note: with Email and Message both optional, and Phone already optional, the only
+required fields left are First/Last Name — technically someone could submit with no
+contact info at all. Flagging since that's a real tradeoff of "make it optional," not
+something to silently paper over.
+
+---
+
+# Testimonials — placeholder, real reviews pending
+
+**Status: done.** The three fake/placeholder testimonials (J. Martinez, S. Kim, T.
+Robinson) were removed from `index.html`'s Reviews section — they were never real
+customer quotes and shouldn't ship as if they were. Replaced with a single dashed-border
+"Customer reviews coming soon — check back after our first completed jobs" placeholder
+(new `.testimonials-placeholder` CSS), rather than leaving empty/fake cards. The original
+3-column `.testimonials-grid` / `.testimonial-card` CSS was left in place (unused for
+now) so real reviews can be dropped back into that same layout later without rebuilding
+the styling.
+
 ---
 
 # Contact Preference Popup — Lead Routing Plan
@@ -199,76 +239,10 @@ independent checkboxes — visitors can select any one, two, or all three.
 - [ ] Have us email you
 - [ ] Text me
 
-Twilio (+1 916-251-4798, already live on the site) is scoped to the AI SMS channel only —
-it is not used for the call-alert or email flows.
-
-## Call — "talk to one of us"
-
-- **Goal**: get the lead on a live phone call with a sales representative, either almost
-  immediately or at a time the lead picks — via a Twilio-driven warm transfer, not a
-  direct ring to staff.
-- **Form options**: a lead who chooses "talk to one of us" picks between:
-  - **ASAP** — Twilio calls them back, likely within 1–2 minutes of submitting.
-  - **Scheduled** — a specific date/time they choose, any day, between **6:00 AM and
-    7:00 PM**.
-- **Twilio call flow** (the lead is never connected straight to a sales rep — Twilio
-  always screens the call first):
-  1. At the requested time (immediately, or at the scheduled moment), Twilio places an
-     outbound call to the lead's number.
-  2. The flow **confirms a live human connection** before anything else happens — e.g. a
-     "Press 1 to speak with a Genesis Pool and Spa representative" IVR prompt is more
-     reliable here than relying solely on Twilio's Answering Machine Detection (AMD),
-     which has known false-positive/latency issues; this step exists specifically to
-     make sure a person, not voicemail, picked up.
-  3. Once confirmed, notify the manager (voice call, SMS, or Slack/push via a webhook)
-     that a lead is connected and will be redirected to a sales rep **in 2 minutes** —
-     a heads-up buffer so the rep isn't caught by an unannounced call.
-  4. The lead is held for that 2-minute window (hold message/music — e.g. "Thanks!
-     Connecting you with a specialist now.").
-  5. After the buffer, Twilio bridges/conferences the lead's call into the sales
-     representative's line.
-- **Caveat**: the <2-minute intent only covers the ASAP option's initial outbound dial —
-  the 2-minute manager heads-up is a deliberate buffer *after* the lead is already
-  confirmed live on the phone, separate from that callback-speed goal. Reliability still
-  depends on a sales rep actually being reachable when the bridge happens; consider what
-  happens on no answer (see open questions).
-
-### Twilio + Google Sheets — what's needed to build the redirect flow
-
-**Twilio side**:
-- A Twilio number with **Programmable Voice** enabled (may be the existing
-  916-251-4798 number or a separate one — ties into the open question below about
-  splitting voice from the AI SMS channel).
-- A call-flow definition — either a **Twilio Studio Flow** (no-code: Trigger → Gather/
-  confirm → notify manager → Wait 2 min → Dial/Conference) or a small **serverless
-  function** (Vercel/Netlify/etc.) driving the Voice API + TwiML directly, which gives
-  more control over retries and no-answer branching.
-- The "confirm connection" step: a `<Gather>` press-1 IVR prompt (recommended) or AMD,
-  wired into whichever flow engine is chosen above.
-- A **conference resource** (Twilio `<Conference>`) to bridge the two legs: the lead
-  joins on confirmation, the sales rep's leg is added after the 2-minute wait.
-- A trigger for *when* the call fires:
-  - ASAP: fire immediately on form submission.
-  - Scheduled: Twilio has no built-in delayed-call scheduler, so this needs an external
-    scheduler — a cron-triggered serverless function, or a Zapier "Schedule" step —
-    that checks pending scheduled times and fires the Twilio API call when one arrives.
-- `statusCallback` webhooks on each call leg so the system knows whether the lead
-  answered/confirmed, and whether the rep picked up — this is what feeds status back
-  into the sheet below.
-
-**Google Sheets side**:
-- The sheet acts as the lead/schedule database: one row per form submission (name,
-  phone, contact preference, ASAP vs. scheduled time, timestamp, status, assigned rep).
-- Form → Sheets connection: either the form posts directly via the Sheets API, or (same
-  pattern as the rest of this plan) Zapier sits in between — form submits → Zapier →
-  appends a row → Zapier/the serverless function reads that row to trigger Twilio.
-- A service account or OAuth credential for whichever tool (Zapier or the serverless
-  function) needs to read/write the sheet.
-- Status gets written back to the same row as the call progresses (called / no-answer /
-  connected / redirected to rep X) so the sheet doubles as a lightweight lead-tracking
-  log the manager can glance at.
-- Scheduled times should be stored unambiguously with timezone, since the "6 AM–7 PM"
-  window is presumably Sacramento local time.
+The **Call** and **Text** channels both run on Twilio — full detail on the SMS
+confirm-flow, the Twilio number, and phone-number verification now lives in
+[`plan/twilio.md`](twilio.md) rather than here, since that file collects everything
+Twilio-specific in one place.
 
 ## Email — "have us email you"
 
@@ -280,43 +254,42 @@ it is not used for the call-alert or email flows.
 - **Dependency**: that mailbox needs to be a real inbox Zapier can authenticate against
   (Gmail/Workspace OAuth, or SMTP credentials if using a different provider).
 
-## Text — AI SMS
-
-- **Goal**: the Twilio number carries on a live SMS conversation, with an AI agent
-  answering visitor questions.
-- **Mechanism**: Twilio Programmable Messaging number → inbound SMS webhook → small
-  backend (serverless function, e.g. a Vercel/Netlify function, or Zapier + Code step) →
-  AI reply grounded in business info → response sent back via the Twilio API.
-- This is the one channel that actually needs Twilio — a live two-way AI conversation loop
-  isn't something Zapier alone handles cleanly.
-- Open question: does this same number also carry live voice calls (forwarded to staff),
-  or should voice ring a separate line from the AI SMS number?
-
 ## All three selected
 
 Each flow fires independently and in parallel — no sequencing or priority logic needed.
 
 ## Open questions before building
 
-1. Zapier plan tier — needs instant (webhook-based) triggers, not polling, to hit the
-   sub-minute call-alert goal.
-2. Who/what receives the "call now" alert — a specific phone, a rotation, or a shared
-   Slack/push channel?
-3. Which LLM/API to use for email drafting and SMS replies.
-4. Whether +1 916-251-4798 carries both live voice and AI SMS, or if those should split.
-5. Popup trigger timing — on load, exit-intent, or after a delay.
-6. Which sales rep gets the redirect — a fixed number, a rotation, or availability-based
-   — and where that logic lives (Sheets lookup vs. hardcoded in the Twilio flow).
-7. What happens on no-answer/no confirmation, or if no rep is reachable after the
-   2-minute buffer — retry, voicemail, or fall back to a callback request?
-8. Who is "the manager" for the 2-minute heads-up — a specific phone/Slack channel, or
-   a rotation of their own?
-9. Twilio Studio Flow (no-code) vs. a custom serverless function for the confirm →
-   notify → wait → bridge logic — Studio is faster to stand up, a function gives more
-   control over retries/no-answer handling.
+1. Which LLM/API to use for email drafting.
+2. Popup trigger timing — on load, exit-intent, or after a delay.
+3. (Twilio/Zapier/SMS-specific open questions — including the confirmation SMS flow,
+   phone verification, and Zapier plan tier — live in `plan/twilio.md`.)
 
 ## Status
 
-Architecture only — not yet built. Blocked on: Twilio account/number confirmation, a
-Zapier account (tier depends on the speed requirement above), Gmail/Workspace access for
-`contact@genesispoolandspa.com`, and the open questions above.
+Architecture only — not yet built for the popup UI or the email flow. The Google Sheets
+lead-logging piece is further along:
+- The Sheet exists ("Genesis Pool and Spa - Booking Requests").
+- The Apps Script (`doPost`) now logs submissions from **both** forms on the site, not
+  just `schedule.html` — a **"Form Source"** column (`"Schedule Form"` vs. `"Contact
+  Form"`) tags which one was used, since the `index.html` `#contact` "Send Us a Message"
+  form previously didn't submit anywhere at all (it only faked a local success message).
+  A **"Service Interested In"** column was also added for that form's service dropdown.
+  The script self-heals the header row on `doPost` (checks row 1 against the expected
+  headers and rewrites it if different), so it also upgrades the sheet's original
+  13-column header to the new 15-column one automatically the first time it runs — no
+  manual cell editing needed.
+- `js/main.js` and `schedule.html` are wired client-side to POST to the Apps Script's
+  deployed URL: the contact form via `fetch(..., {mode:'no-cors'})` (no navigation, so a
+  normal fetch is fine), the schedule form via `navigator.sendBeacon()` (chosen over
+  fetch specifically because that form does navigate away afterward, to FormSubmit.co →
+  `thankyou.html` — sendBeacon guarantees the request survives the navigation, an
+  in-flight fetch might not).
+- Still blocked on: the user deploying the Apps Script as a Web App and sending back the
+  `/exec` URL — until then, `window.APPS_SCRIPT_URL` in `js/main.js` is a placeholder
+  (`'REPLACE_WITH_DEPLOYED_APPS_SCRIPT_URL'`) and both forms' logging calls are no-ops by
+  design (guarded so they don't fire against a fake URL).
+
+The email flow (Zapier + Gmail) is blocked on Gmail/Workspace access for
+`contact@genesispoolandspa.com`. The Twilio/Zapier SMS pieces (Call, Text, phone
+verification) are tracked separately in `plan/twilio.md`.
